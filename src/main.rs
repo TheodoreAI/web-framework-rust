@@ -1,10 +1,11 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 use async_std::sync::{Arc, Mutex};
 
-use rocket::serde::{json::json};
+use rocket::serde::json::json;
 
-use rocket_dyn_templates::{Template, context};
 use rocket::form::Form;
+use rocket_dyn_templates::{context, Template};
 
 use lazy_static::lazy_static;
 
@@ -13,7 +14,7 @@ lazy_static! {
     static ref SHARED_DATA: Arc<Mutex<Vec<String>>> = create_and_work_shared_data();
 }
 // initialize the vector with some names
-fn create_and_work_shared_data() -> Arc<Mutex<Vec<String>>>{
+fn create_and_work_shared_data() -> Arc<Mutex<Vec<String>>> {
     // create an empty vector inside a Mutex and wrap it in an Arc for shared ownership
     Arc::new(Mutex::new(Vec::new()))
 }
@@ -38,16 +39,17 @@ fn signup_form() -> Template {
     Template::render("signup", context! { field_one: "Sign", field_two: "Up"})
 }
 
-
 #[post("/search", data = "<search>")]
 fn search(search: Form<Search>) -> Template {
     // Check if the name field is empty
     if search.name.is_empty() {
         return Template::render("index", context! { error_msg: "Name cannot be empty." });
     }
-    return Template::render("index", context!{ success_msg: "Name found.", name: &search.name })
+    return Template::render(
+        "index",
+        context! { success_msg: "Name found.", name: &search.name },
+    );
 }
-
 
 #[post("/add", data = "<add>")]
 async fn add_data(add: Form<Add>) -> Template {
@@ -71,7 +73,10 @@ async fn add_data(add: Form<Add>) -> Template {
     let data_json = json!(&*SHARED_DATA.lock().await);
     // return the template with the success message and the data_locked
     println!("Vector content: {:?}", data_json);
-    return Template::render("home", json!({ "success_msg": "Name added.", "data": data_json }));
+    return Template::render(
+        "home",
+        json!({ "success_msg": "Name added.", "data": data_json }),
+    );
 }
 
 #[post("/signingup", data = "<signup>")]
@@ -81,9 +86,11 @@ fn signup(signup: Form<Signup>) -> Template {
         return Template::render("signup", context! { error_msg: "Name cannot be empty." });
     }
     println!("Username: {}", signup.username);
-    return Template::render("login", context!{ success_msg: "Account created!", name: &signup.username })
+    return Template::render(
+        "login",
+        context! { success_msg: "Account created!", name: &signup.username },
+    );
 }
-
 
 #[derive(FromForm)]
 struct Search {
@@ -103,15 +110,21 @@ struct Add {
 
 #[catch(404)]
 fn not_found() -> Template {
-    Template::render("404", context!{})
+    Template::render("404", context! {})
 }
 
 #[catch(500)]
 fn internal_error() -> Template {
-    Template::render("500", context!{})
+    Template::render("500", context! {})
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().attach(Template::fairing()).mount("/", routes![index, home, about, search, add_data, signup, signup_form]).register("/", catchers![not_found, internal_error])
+    rocket::build()
+        .attach(Template::fairing())
+        .mount(
+            "/",
+            routes![index, home, about, search, add_data, signup, signup_form],
+        )
+        .register("/", catchers![not_found, internal_error])
 }
