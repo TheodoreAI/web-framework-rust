@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+    {{>partials/navbar}}
+   <div class="container">
+        <div class="card">
+            <div class="alert alert-success card-header text-center">
+                <h1>Hello, {{ field_one }}!</h1>
+            </div>
+            <div class="card-body">
+                <p> {{ field_two }}.</p>
+            </div>
+        </div>
+        <form action="/add" method="post">
+            <input type="text" name="name" placeholder="name">
+            <button type="submit" class="btn btn-danger">add</button>
+        </form>
+        <div>
+            <ul>
+                {{#each data}}
+                    <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+   </div>
+
+</body>
+</html>
