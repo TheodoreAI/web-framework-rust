@@ -9,6 +9,19 @@ use rocket_dyn_templates::{context, Template};
 
 use lazy_static::lazy_static;
 
+use std::fs;
+use serde_json;
+
+// importing json file to be used in the template 
+fn reading_json_file(path_name: &str) -> serde_json::Value {
+    // Read the JSON data from the file
+    let data = fs::read_to_string(path_name).expect("Unable to read file");
+    let res: serde_json::Value = serde_json::from_str(&data).expect("Unable to parse");
+    res
+}
+
+
+// write an enum to 
 // global shared data
 lazy_static! {
     static ref SHARED_DATA: Arc<Mutex<Vec<String>>> = create_and_work_shared_data();
@@ -21,17 +34,19 @@ fn create_and_work_shared_data() -> Arc<Mutex<Vec<String>>> {
 
 #[get("/")]
 fn index() -> Template {
-    Template::render("index", context! { field: "Mateo", another_field: "Rust" })
+    Template::render("index", context! { title_page: "Dashboard", app_name: "Rust Website", data_table: [1, 2, 3, 4, 5] })
 }
 
 #[get("/home")]
 fn home() -> Template {
-    Template::render("home", context! { field_one: "Welcome", field_two: "Home"})
+    println!("reading in home template function {}", reading_json_file("users.json"));
+
+    Template::render("home", context! { field_one: "Welcome", field_two: "Home", users: reading_json_file("users.json")})
 }
 
 #[get("/about")]
 fn about() -> Template {
-    Template::render("about", context! { field_one: "About", field_two: "Us"})
+    Template::render("about", context! { field_one: "About", field_two: "Us", about_us: reading_json_file("about.json")})
 }
 
 #[get("/signup-form")]

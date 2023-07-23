@@ -1,10 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>About</title>
+    <title>{{about_us.title}}</title>
 
 </head>
 <body>
     {{>partials/navbar}}
+    {{!-- about_us page content for a website to fill with static content --}}
+    <div class="container">
+        <h1 class="mt-5">{{ about_us.title }}</h1>
+        <p>{{ description }}</p>
+
+        <div class="bg-primary border rounded-3">
+            <h2 class="mt-4">Founders</h2>
+            <ul class="list-group">
+                {{#each about_us.founders}}
+                <li class="list-group-item">{{ this.name }} - {{ this.role }}</li>
+                {{/each}}
+            </ul>
+        </div>
+    </div>
+
+
+
 </body>
 </html>

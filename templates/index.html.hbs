@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Website</title>
+    <title>Dashboard</title>
 </head>
 <body>
     
     {{>partials/navbar}}
    <div class="container">
     <div class="card">
-        <div class="alert alert-success card-header text-center">
-            <h1>Hello, {{ field }}!</h1>
+        <div class="card-header text-center">
+            <h1 class="m-2">{{ title_page }}</h1>
         </div>
         <div class="card-body">
-            <p>My name is {{ field }}.</p>
+            <p>{{ app_name }}</p>
+            <ul>
+                {{#each data_table}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
             <p>{{error_msg}}</p>
         </div>
         </div>

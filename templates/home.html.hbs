@@ -7,8 +7,8 @@
     {{>partials/navbar}}
    <div class="container">
         <div class="card">
-            <div class="alert alert-success card-header text-center">
-                <h1>Hello, {{ field_one }}!</h1>
+            <div class="bg-info card-header text-center">
+                <h1>{{ field_one }}!</h1>
             </div>
             <div class="card-body">
                 <p> {{ field_two }}.</p>
@@ -22,6 +22,24 @@
             <ul>
                 {{#each data}}
                     <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+   </div>
+
+   <div class="container">
+        <div class="row mx-auto">
+            <ul>
+                {{#each users}}
+                <div class="card">
+                    <div class="card-body">
+                        <li>{{this.name}}</li>
+                        <li>{{this.address.state}}</li>
+                        <li>{{this.phone}}</li>
+                        <li>{{this.email}}</li>
+                        <li><img src="{{this.image}}" class="img-thumbnail"/></li>
+                    </div>
+                </div>
                 {{/each}}
             </ul>
         </div>

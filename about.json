@@ -1,0 +1,14 @@
+{
+  "title": "About Us",
+  "description": "Welcome to our website! We are a passionate team of developers...",
+  "founders": [
+    {
+      "name": "John Doe",
+      "role": "CEO"
+    },
+    {
+      "name": "Jane Smith",
+      "role": "CTO"
+    }
+  ]
+}

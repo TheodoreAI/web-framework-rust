@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Sara",
+    "age": 25,
+    "address": {
+      "street": "123 Main St",
+      "city": "Miami",
+      "state": "FL"
+    },
+    "phone": "555-555-5555",
+    "email": "",
+    "website": "http://www.sara.com",
+    "description": "This is a description of Sara",
+    "image": "https://images.unsplash.com/photo-1605496036006-fa36378ca4ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1035&q=80"
+  },
+  {
+    "name": "Sara",
+    "age": 25,
+    "address": {
+      "street": "123 Main St",
+      "city": "Miami",
+      "state": "FL"
+    },
+    "phone": "555-555-5555",
+    "email": "",
+    "website": "http://www.sara.com",
+    "description": "This is a description of Sara",
+    "image": "http://lorempixel.com/600/600/people/3"
+  }
+]
