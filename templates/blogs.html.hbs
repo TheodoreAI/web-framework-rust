@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+
+</head>
+<body>
+    {{>partials/navbar}}
+    {{!-- about_us page content for a website to fill with static content --}}
+    <div class="container">
+        {{#if query_not_found}}
+            <div class="alert alert-danger">{{found_msg}} <p>{{name}}</p></div>
+        {{/if}}
+    </div>
+    <div class="container">
+        <div class="card-header bg-secondary text-light rounded-3 text-start shadow-sm">
+            <h1 class="m-3 p-3">{{ field_two }}</h1>
+        </div>
+        <p>{{ description }}</p>
+        {{#each blogs}}
+        <div class="card border rounded-2 my-3 shadow-sm">
+            <div class="card-body text-left">
+                {{!-- reads handlebar field as html --}}
+                <li class="list-group-item">{{{ this }}} </li>
+            </div>
+        </div>
+        {{/each}}
+
+    </div>
+</body>
+</html>

@@ -42,23 +42,28 @@
               <a class='nav-link' href='/about'>About</a>
             </li>
             <li class='nav-item'>
-              <a class='nav-link' href='/signup-form'>Signup</a>
+              <a class='nav-link' aria-current='page' href='/blogs'>blogs</a>
             </li>
           </ul>
-          <form method='POST' class='d-flex' role='search' action='/search'>
-            <input
-              class='form-control me-2'
-              type='text'
-              placeholder='Search'
-              aria-label='Search'
-              name='name'
-              required
-            />
-            <button
-              class='btn btn-outline-success'
-              type='submit'
-            >Search</button>
-          </form>
+          {{! refactor since it is going to be sent as an action to a GET request /blogs?<search> }}
+
+          {{#if is_blogs_page}}
+            <form method='GET' class='d-flex' role='search' action='/blogs'>
+              <input
+                class='form-control me-2'
+                type='text'
+                placeholder='Search'
+                aria-label='Search'
+                name='search'
+                required
+              />
+              <button
+                class='btn btn-outline-success'
+                type='submit'
+              >Search</button>
+            </form>
+          {{/if}}
+
         </div>
       </div>
     </nav>

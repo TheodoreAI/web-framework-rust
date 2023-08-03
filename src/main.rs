@@ -9,19 +9,16 @@ use rocket_dyn_templates::{context, Template};
 
 use lazy_static::lazy_static;
 
-use std::fs;
 use serde_json;
 
-// importing json file to be used in the template 
-fn reading_json_file(path_name: &str) -> serde_json::Value {
-    // Read the JSON data from the file
-    let data = fs::read_to_string(path_name).expect("Unable to read file");
-    let res: serde_json::Value = serde_json::from_str(&data).expect("Unable to parse");
-    res
-}
+// refactors the function above to be imported from a module called blogs.rs
+// the following file will contain the functions that deal with the blogs
+mod blog_helpers;
+use blog_helpers::get_all_blogs;
+use blog_helpers::markdown_to_html_strings;
+use blog_helpers::reading_json_file;
 
-
-// write an enum to 
+// write an enum to
 // global shared data
 lazy_static! {
     static ref SHARED_DATA: Arc<Mutex<Vec<String>>> = create_and_work_shared_data();
@@ -34,34 +31,83 @@ fn create_and_work_shared_data() -> Arc<Mutex<Vec<String>>> {
 
 #[get("/")]
 fn index() -> Template {
-    Template::render("index", context! { title_page: "Dashboard", app_name: "Rust Website", data_table: [1, 2, 3, 4, 5] })
+    Template::render(
+        "index",
+        context! { title_page: "Dashboard", app_name: "Rust Website", data_table: [1, 2, 3, 4, 5] },
+    )
 }
 
 #[get("/home")]
 fn home() -> Template {
-    println!("reading in home template function {}", reading_json_file("users.json"));
+    println!(
+        "reading in home template function {}",
+        reading_json_file("users.json")
+    );
 
-    Template::render("home", context! { field_one: "Welcome", field_two: "Home", users: reading_json_file("users.json")})
+    Template::render(
+        "home",
+        context! { field_one: "Welcome", field_two: "Home", users: reading_json_file("users.json")},
+    )
 }
 
 #[get("/about")]
 fn about() -> Template {
-    Template::render("about", context! { field_one: "About", field_two: "Us", about_us: reading_json_file("about.json")})
+    Template::render(
+        "about",
+        context! { field_one: "About", field_two: "Us", about_us: reading_json_file("about.json")},
+    )
 }
 
-#[get("/signup-form")]
-fn signup_form() -> Template {
-    Template::render("signup", context! { field_one: "Sign", field_two: "Up"})
+// refactor the blogs function to accept a search query search?name= from a form and filter the blogs based on the search query
+// if the search query is empty, then all the blogs will be displayed
+#[get("/blogs?<search>")]
+fn blogs(search: Option<String>) -> Template {
+    // reads the markdown file and converts it to html
+    let html_output = markdown_to_html_strings(&get_all_blogs());
+    // converts the html into an array of json objects that can be used in the template in a for loop
+    let html_output = serde_json::to_value(&html_output).unwrap();
+    println!("html_output: {}", html_output);
+    // if the search query is empty, then all the blogs will be displayed
+    if search.is_none() {
+        return Template::render(
+            "blogs",
+            context! { title: "Blogs", field_two: "Blog posts", blogs: html_output, is_blogs_page: true},
+        );
+    }
+
+    let mut query_not_found = false;
+    let mut found_msg = "Search query found";
+
+    let search = search.unwrap();
+    let mut filtered_blogs = Vec::new();
+    for blog in html_output.as_array().unwrap() {
+        let blog = blog.as_str().unwrap();
+        if blog.contains(&search) {
+            filtered_blogs.push(blog.to_string());
+            query_not_found = false;
+            found_msg = "Search query found";
+        } else {
+            println!("No search query found");
+            query_not_found = true;
+            found_msg = "No search query found";
+        }
+    }
+    let filtered_blogs = serde_json::to_value(&filtered_blogs).unwrap();
+    println!("filtered_blogs: {}", filtered_blogs);
+    Template::render(
+        "blogs",
+        context! { title: "Blogs", field_two: "Blog posts", blogs: filtered_blogs, query_not_found: query_not_found, found_msg: found_msg, is_blogs_page: true},
+    )
 }
 
 #[post("/search", data = "<search>")]
 fn search(search: Form<Search>) -> Template {
     // Check if the name field is empty
     if search.name.is_empty() {
-        return Template::render("index", context! { error_msg: "Name cannot be empty." });
+        return Template::render("blogs", context! { error_msg: "Name cannot be empty." });
     }
     return Template::render(
-        "index",
+        "blogs",
         context! { success_msg: "Name found.", name: &search.name },
     );
 }
@@ -94,28 +140,9 @@ async fn add_data(add: Form<Add>) -> Template {
     );
 }
 
-#[post("/signingup", data = "<signup>")]
-fn signup(signup: Form<Signup>) -> Template {
-    // Check if the name field is empty
-    if signup.username.is_empty() {
-        return Template::render("signup", context! { error_msg: "Name cannot be empty." });
-    }
-    println!("Username: {}", signup.username);
-    return Template::render(
-        "login",
-        context! { success_msg: "Account created!", name: &signup.username },
-    );
-}
-
 #[derive(FromForm)]
 struct Search {
     name: String,
-}
-
-#[derive(FromForm)]
-struct Signup {
-    username: String,
-    password: String,
 }
 
 #[derive(FromForm)]
@@ -137,9 +164,6 @@ fn internal_error() -> Template {
 fn rocket() -> _ {
     rocket::build()
         .attach(Template::fairing())
-        .mount(
-            "/",
-            routes![index, home, about, search, add_data, signup, signup_form],
-        )
+        .mount("/", routes![index, home, about, search, add_data, blogs])
         .register("/", catchers![not_found, internal_error])
 }
