@@ -11,31 +11,14 @@
         <div class="card-header text-center">
             <h1 class="m-2">{{ title_page }}</h1>
         </div>
-        <div class="card-body">
-            <p>{{ app_name }}</p>
-            <ul>
-                {{#each data_table}}
-                <li>{{this}}</li>
-                {{/each}}
-            </ul>
-            <p>{{error_msg}}</p>
-        </div>
-        </div>
    </div>
    <div class="container">
     <div class="row">
-        <p class="text-center">This is a {{another_field}} app.</p>
+        <p class="text-center">This is a Server-Side {{another_field}} app.</p>
         <button class="btn btn-primary" onclick="counter()">Click Me</button>
         <p class="text-center">You have clicked the button <span id="counter">0</span> times.</p>
+        <p>This is triggered with javascript</p>
     </div>
-   </div>
-   <div class="container">
-       <div class="row">
-         <div class="col-6">
-            <p>{{success_msg}}</p>
-            <p>The post request {{name}}</p>
-         </div>
-       </div>
    </div>
     <script>
         function counter() {
