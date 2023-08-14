@@ -1,0 +1,25 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main # Trigger the pipeline when code is pushed to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t my-rust-app:${{ github.sha }} .
+
+      - name: Stop and remove existing container
+        run: |
+          docker stop my-rust-container || true
+          docker rm my-rust-container || true
+
+      - name: Run new Docker container
+        run: docker run -d --name my-rust-container -p 8000:8080 my-rust-app:${{ github.sha }}
