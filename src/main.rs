@@ -18,6 +18,9 @@ use blog_helpers::get_all_blogs;
 use blog_helpers::markdown_to_html_strings;
 use blog_helpers::reading_json_file;
 
+mod auth;
+use auth::has_auth;
+
 // write an enum to
 // global shared data
 lazy_static! {

@@ -11,11 +11,24 @@
         <h1 class="mt-5">{{ about_us.title }}</h1>
         <p>{{ description }}</p>
 
-        <div class="bg-primary border rounded-3">
-            <h2 class="mt-4">Founders</h2>
+        <div class="bg-secondary border rounded-3">
+            <h2 class="mt-4 m-3 p-2 text-white">Programmers</h2>
             <ul class="list-group">
                 {{#each about_us.founders}}
-                <li class="list-group-item">{{ this.name }} - {{ this.role }}</li>
+                <li class="list-group-item">
+                {{!-- contact card --}}
+                <div class="card col-3">
+                    {{!-- name, role, contact info in email, image  --}}
+                    <div class="card-body">
+                        <h3>{{ this.name }}</h3>
+                        <h4>{{ this.role }}</h4>
+                        Contact me: <a href="mailto:{{ this.email }}">{{ this.email }}</a>
+                        {{!-- sends to github --}}
+
+                        <a href="{{ this.github }}" target="_blank"><img src="{{ this.image }}" class="img-thumbnail"/></a>
+                    </div>
+                </div>
+                </li>
                 {{/each}}
             </ul>
         </div>

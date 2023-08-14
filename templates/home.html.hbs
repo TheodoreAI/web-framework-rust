@@ -6,44 +6,158 @@
 <body>
     {{>partials/navbar}}
    <div class="container">
+        {{!-- games will be here --}}
         <div class="card">
-            <div class="bg-info card-header text-center">
-                <h1>{{ field_one }}!</h1>
+            <div class="bg-secondary card-header text-center">
+                <h1>Games</h1>
             </div>
             <div class="card-body">
-                <p> {{ field_two }}.</p>
+                {{!-- here you will render the compiled rust code that will run on the browser the game --}}
+                <div id="gameOne">
+                    <h2>Pong</h2>
+                    <canvas id="pongCanvas" width="600" height="400"></canvas>
+                </div>
+
             </div>
         </div>
-        <form action="/add" method="post">
-            <input type="text" name="name" placeholder="name">
-            <button type="submit" class="btn btn-danger">add</button>
-        </form>
-        <div>
-            <ul>
-                {{#each data}}
-                    <li>{{this}}</li>
-                {{/each}}
-            </ul>
-        </div>
-   </div>
 
-   <div class="container">
-        <div class="row mx-auto">
-            <ul>
-                {{#each users}}
-                <div class="card">
-                    <div class="card-body">
-                        <li>{{this.name}}</li>
-                        <li>{{this.address.state}}</li>
-                        <li>{{this.phone}}</li>
-                        <li>{{this.email}}</li>
-                        <li><img src="{{this.image}}" class="img-thumbnail"/></li>
-                    </div>
-                </div>
-                {{/each}}
-            </ul>
-        </div>
+       
+       
    </div>
+   {{!-- make a javascript element that looks for an element with id="gameOne" 
+   then write the logic for a simple pong game --}}
+    <script type="module">
+        // Wait for the DOM to be loaded
+        document.addEventListener("DOMContentLoaded", () => {
+            // Get the canvas element
+            const canvas = document.getElementById("pongCanvas");
+            const ctx = canvas.getContext("2d");
+
+            // score
+            let score = 0;
+
+            // add score to the page
+            const scoreElement = document.createElement("h2");
+            scoreElement.innerText = score;
+            document.body.appendChild(scoreElement);
+
+
+
+            // Ball properties
+            let ballX = canvas.width / 2;
+            let ballY = canvas.height / 2;
+            let ballSpeedX = 5; // Adjust this value to control ball speed
+            let ballSpeedY = 5; // Adjust this value to control ball speed
+
+            // Paddle properties
+            const paddleWidth = 10;
+            const paddleHeight = 100;
+            let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+            let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+            // Update function to handle game logic and drawing
+            function update() {
+                // Move the ball
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+
+                // Check collision with top and bottom walls
+                if (ballY < 0 || ballY > canvas.height) {
+                    ballSpeedY = -ballSpeedY;
+                }
+
+                // Check collision with left paddle
+                if (ballX < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                }
+
+                // Check collision with right paddle
+                if (ballX > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                }
+
+                // Clear the canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw paddles
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+                ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+
+                // Draw the ball
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+                ctx.fillStyle = "black";
+                ctx.fill();
+                ctx.closePath();
+
+                // Request the next animation frame
+                requestAnimationFrame(update);
+            }
+
+            function gameState(){
+                // if ball goes off the screen
+                if(ballX > canvas.width){
+                    // reset the ball
+                    ballX = canvas.width / 2;
+                    ballY = canvas.height / 2;
+                    // reset the score
+                    score = 0;
+                    // update the score on the page
+                    scoreElement.innerText = score;
+                }
+            }
+            // Start the game
+            update();
+
+            // update the game state
+            gameState();
+
+            
+
+            
+
+            // Listen for mouse movement
+            canvas.addEventListener("mousemove", (event) => {
+                // Get the mouse position
+                const rect = canvas.getBoundingClientRect();
+                const root = document.documentElement;
+                const mouseX = event.clientX - rect.left - root.scrollLeft;
+                const mouseY = event.clientY - rect.top - root.scrollTop;
+
+                // Move the left paddle
+                leftPaddleY = mouseY - paddleHeight / 2;
+
+                // Move the right paddle
+                rightPaddleY = mouseY - paddleHeight / 2;
+
+                // Prevent the paddles from moving off the screen
+                if (leftPaddleY < 0) {
+                    leftPaddleY = 0;
+                }
+
+                if (leftPaddleY > canvas.height - paddleHeight) {
+                    leftPaddleY = canvas.height - paddleHeight;
+                }
+
+            });
+
+            // listen for key presses
+            // if key is pressed then move paddle up or down
+            // if key is pressed then move paddle up or down
+            canvas.addEventListener("keydown", (event) => {
+                if (event.key === "ArrowUp") {
+                    // move paddle up
+                    leftPaddleY -= 10;
+                } else if (event.key === "ArrowDown") {
+                    // move paddle down
+                    leftPaddleY += 10;
+                }
+            });
+
+        });
+        
+    </script>
 
 </body>
 </html>

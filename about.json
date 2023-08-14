@@ -3,12 +3,11 @@
   "description": "Welcome to our website! We are a passionate team of developers...",
   "founders": [
     {
-      "name": "John Doe",
-      "role": "CEO"
-    },
-    {
-      "name": "Jane Smith",
-      "role": "CTO"
+      "name": "Mateo Estrada",
+      "role": "Programmer",
+      "image": "https://avatars.githubusercontent.com/u/10000000?s=460&v=4",
+      "email": "mateoej12@gmail.com",
+      "github": "www.github.com/theodoreai"
     }
   ]
 }
