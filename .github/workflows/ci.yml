@@ -16,16 +16,11 @@ jobs:
       - name: Build Docker image
         run: docker build -t rust-app:${{ github.sha }} .
 
-      - name: Decode and save private key
-        run: |
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | base64 --decode > ssh_key.pem
-          chmod 600 ssh_key.pem
-
       - name: Stop and remove existing container
         run: |
-          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop zealous_bartik || true'
-          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm zealous_bartik || true'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop zealous_bartik || true'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm zealous_bartik || true'
 
       - name: Run new Docker container
         run: |
-          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name zealous_bartik -p 8080:8080 rust-app:${{ github.sha }}'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name zealous_bartik -p 8080:8080 rust-app:${{ github.sha }}'
