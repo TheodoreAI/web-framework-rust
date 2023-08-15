@@ -166,11 +166,12 @@ fn internal_error() -> Template {
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-    .configure(rocket::Config::figment()
-        .merge(("port", 8080))
-        .merge(("address", "0.0.0.0")))
-    .attach(Template::fairing())
-    .mount("/", routes![index, home, about, search, add_data, blogs])
-    .register("/", catchers![not_found, internal_error])
-
+        .configure(
+            rocket::Config::figment()
+                .merge(("port", 8080))
+                .merge(("address", "0.0.0.0")),
+        )
+        .attach(Template::fairing())
+        .mount("/", routes![index, home, about, search, add_data, blogs])
+        .register("/", catchers![not_found, internal_error])
 }

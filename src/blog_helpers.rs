@@ -20,9 +20,7 @@ pub fn markdown_to_html_strings(vector_paths: &Vec<String>) -> Vec<String> {
         pulldown_cmark::html::push_html(&mut html_string, parser);
         html_output.push(html_string);
     }
-    
-    
-    
+
     html_output
 }
 
