@@ -18,9 +18,9 @@ jobs:
 
       - name: Stop and remove existing container
         run: |
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop zealous_bartik || true'
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm zealous_bartik || true'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop amazing_diffie || true'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm amazing_diffie || true'
 
       - name: Run new Docker container
         run: |
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name zealous_bartik -p 8080:8080 rust-app:${{ github.sha }}'
+          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY_PATH }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name amazing_diffie -p 8080:8080 rust-app:${{ github.sha }}'
