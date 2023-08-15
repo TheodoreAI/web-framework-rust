@@ -18,9 +18,15 @@ jobs:
 
       - name: Stop and remove existing container
         run: |
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop amazing_diffie || true'
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm amazing_diffie || true'
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ssh_key.pem
+          chmod 600 ssh_key.pem
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop amazing_diffie || true'
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm amazing_diffie || true'
+          rm -f ssh_key.pem
 
       - name: Run new Docker container
         run: |
-          ssh -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name amazing_diffie -p 8080:8080 rust-app:${{ github.sha }}'
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ssh_key.pem
+          chmod 600 ssh_key.pem
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name amazing_diffie -p 8080:8080 rust-app:${{ github.sha }}'
+          rm -f ssh_key.pem
