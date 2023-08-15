@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main # Trigger the pipeline when code is pushed to the main branch
+      - main
 
 jobs:
   build:
@@ -18,8 +18,9 @@ jobs:
 
       - name: Stop and remove existing container
         run: |
-          docker stop my-rust-container || true
-          docker rm my-rust-container || true
+          ssh -i <(echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}") ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker stop my-rust-container || true'
+          ssh -i <(echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}") ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker rm my-rust-container || true'
 
       - name: Run new Docker container
-        run: docker run -d --name my-rust-container -p 8000:8080 my-rust-app:${{ github.sha }}
+        run: |
+          ssh -i <(echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}") ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name my-rust-container -p 8000:8080 my-rust-app:${{ github.sha }}'
