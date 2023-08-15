@@ -23,9 +23,9 @@ jobs:
 
       - name: Stop and remove existing container
         run: |
-          ssh -i ssh_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker stop zealous_bartik || true'
-          ssh -i ssh_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker rm zealous_bartik || true'
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker stop zealous_bartik || true'
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm zealous_bartik || true'
 
       - name: Run new Docker container
         run: |
-          ssh -i ssh_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name zealous_bartik -p 8080:8080 my-rust-app:${{ github.sha }}'
+          ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name zealous_bartik -p 8080:8080 my-rust-app:${{ github.sha }}'
