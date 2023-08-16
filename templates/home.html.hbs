@@ -13,12 +13,14 @@
             </div>
             <div class="card-body">
                 {{!-- here you will render the compiled rust code that will run on the browser the game --}}
-                <div id="gameOne">
+                <div class="row" id="gameOne">
                     <h2>Pong</h2>
-                    <canvas id="pongCanvas" width="500" height="400"></canvas>
+                    <div class="col-12 d-flex justify-content-center align-items-center" style="height: 50vh;">
+                        <canvas id="pongCanvas" width="500" height="400"></canvas>
+                    </div>
                 </div>
-
             </div>
+
         </div>
    </div>
    {{!-- make a javascript element that looks for an element with id="gameOne" 
@@ -29,9 +31,21 @@
             // Get the canvas element
             const canvas = document.getElementById("pongCanvas");
             const ctx = canvas.getContext("2d");
-
             // score
             let score = 0;
+            let gameEnded = false;
+
+            const startButton = drawStartButton();
+            // listen for the button to be clicked
+            startButton.addEventListener("click", () => {
+                // start the game
+                ballSpeedX = 3;
+                ballSpeedY = 3;
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                score = 0;
+
+            });
 
             // add score to the page
             const scoreElement = document.createElement("h2");
@@ -39,7 +53,7 @@
             document.body.appendChild(scoreElement);
             // put the score on the page in the middle
             scoreElement.style.position = "absolute";
-            scoreElement.style.top = "50%";
+            scoreElement.style.top = "20%";
             scoreElement.style.left = "50%";
             scoreElement.style.transform = "translate(-50%, -50%)";
 
@@ -47,8 +61,8 @@
             // Ball properties
             let ballX = canvas.width / 2;
             let ballY = canvas.height / 2;
-            let ballSpeedX = 5; // Adjust this value to control ball speed
-            let ballSpeedY = 5; // Adjust this value to control ball speed
+            let ballSpeedX = 0; // Adjust this value to control ball speed
+            let ballSpeedY = 0; // Adjust this value to control ball speed
 
             // Paddle properties
             const paddleWidth = 10;
@@ -56,8 +70,30 @@
             let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
             let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 
+            function drawWalls(){
+                // Draw the top and bottom walls
+                ctx.fillStyle = "blue";
+                ctx.fillRect(0, 0, canvas.width, 10);
+                ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+            }
+            function drawStartButton(){
+                // make a button to start the game by setting the ball speed to 5
+                const startButton = document.createElement("button");
+                startButton.innerText = "Start Game";
+                document.body.appendChild(startButton);
+                // put the button in the middle of the screen
+                startButton.style.position = "absolute";
+                startButton.style.top = "15%";
+                startButton.style.left = "50%";
+                startButton.style.transform = "translate(-50%, -50%)";
+                startButton.className = "btn btn-primary";
+                return startButton;
+            }
+
             // Update function to handle game logic and drawing
             function update() {
+
                 // Move the ball
                 ballX += ballSpeedX;
                 ballY += ballSpeedY;
@@ -67,44 +103,36 @@
                     ballSpeedY = -ballSpeedY;
                 }
 
-                // if the ball goes off the screen then reset and pause the game and add a button to restart the game
-                if (ballX > canvas.width) {
-                    // reset the ball
-                    ballX = canvas.width / 2;
-                    ballY = canvas.height / 2;
-                    // reset the score
-                    score = 0;
-                    // update the score on the page
-                    scoreElement.innerText = score;
-                    // exit the loop and pause the game
-                    cancelAnimationFrame(update);
-                    
-                    // add a button to restart the game
-                    const restartButton = document.createElement("button");
-                    restartButton.innerText = "Restart";
-                    document.body.appendChild(restartButton);
-                    restartButton.style.position = "absolute";
-                    restartButton.style.top = "50%";
-                    restartButton.style.left = "50%";
-                    restartButton.style.transform = "translate(-50%, -50%)";
-                    restartButton.addEventListener("click", () => {
-                        // remove the button
-                        document.body.removeChild(restartButton);
-                        // restart the game
-                        update();
-                    });
+                // check collision with left and right walls
+                if (ballX < 0 || ballX > canvas.width) {
+                    ballSpeedX = 0;
+                    ballSpeedY = 0;
+                    gameEnded = true;
                 }
-                
 
                 // Check collision with left paddle
                 if (ballX < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
                     ballSpeedX = -ballSpeedX;
+                    score++;
+                    scoreElement.innerText = score;
+                    ballSpeedX += 0.2;
+                    ballSpeedY += 0.2;
+                  
                 }
 
-                // Check collision with right paddle
-                if (ballX > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
-                    ballSpeedX = -ballSpeedX;
+              // Check collision with right paddle
+                if (
+                    ballX > canvas.width - paddleWidth && // Right edge of ball
+                    ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight // Within paddle's vertical range
+                ) {
+                    ballSpeedX = -ballSpeedX; // Reflect the ball's horizontal motion
+                    // You can also adjust the ball's vertical motion here if desired
+                    // Example: ballSpeedY += someValue;
+                    score++;
+                    scoreElement.innerText = score;
                 }
+
+
 
                 // Clear the canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,44 +149,26 @@
                 ctx.fill();
                 ctx.closePath();
 
+                // Draw the walls
+                drawWalls();
+
                 // Request the next animation frame
                 requestAnimationFrame(update);
             }
 
-            function gameState(){
-                // if ball goes off the screen
-                if(ballX > canvas.width){
-                    // reset the ball
-                    ballX = canvas.width / 2;
-                    ballY = canvas.height / 2;
-                    // reset the score
-                    score = 0;
-                    // update the score on the page
-                    scoreElement.innerText = score;
-                }
-            }
             // Start the game
             update();
 
-            // update the game state
-            gameState();
-
-            
-
-            
 
             // Listen for mouse movement
             canvas.addEventListener("mousemove", (event) => {
                 // Get the mouse position
                 const rect = canvas.getBoundingClientRect();
                 const root = document.documentElement;
-                const mouseX = event.clientX - rect.left - root.scrollLeft;
                 const mouseY = event.clientY - rect.top - root.scrollTop;
 
-                // Move the left paddle
+                // Move both paddles
                 leftPaddleY = mouseY - paddleHeight / 2;
-
-                // Move the right paddle
                 rightPaddleY = mouseY - paddleHeight / 2;
 
                 // Prevent the paddles from moving off the screen
@@ -170,7 +180,15 @@
                     leftPaddleY = canvas.height - paddleHeight;
                 }
 
+                if (rightPaddleY < 0) {
+                    rightPaddleY = 0;
+                }
+
+                if (rightPaddleY > canvas.height - paddleHeight) {
+                    rightPaddleY = canvas.height - paddleHeight;
+                }
             });
+
 
             // listen for key presses
             // if key is pressed then move paddle up or down
@@ -186,7 +204,6 @@
             });
 
         });
-        
     </script>
 
 </body>

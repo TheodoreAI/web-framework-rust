@@ -24,6 +24,9 @@ jobs:
           ssh -i ssh_key.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker rm amazing_diffie || true'
           rm -f ssh_key.pem
 
+      - name: Debug SSH Connection
+        run: ssh -i ssh_key.pem -vvv ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'echo Debugging SSH connection'
+
       - name: Run new Docker container
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ssh_key.pem
