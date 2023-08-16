@@ -19,7 +19,7 @@ jobs:
           chmod 600 workflow-rust.pem
 
       - name: Debug SSH Connection
-        run: ssh -i workflow-rust.pem -vvv ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'echo Debugging SSH connection'
+        run: ssh -i workflow-rust.pem -o StrictHostKeyChecking=no -vvv ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'echo Debugging SSH connection'
 
       - name: Build Docker image
         run: docker build -t rust-app:${{ github.sha }} .
