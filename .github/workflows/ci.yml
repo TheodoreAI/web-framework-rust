@@ -18,6 +18,9 @@ jobs:
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > workflow-rust.pem
           chmod 600 workflow-rust.pem
 
+      - name: Clear SSH Host Key Cache
+        run: ssh-keygen -R ${{ secrets.EC2_PUBLIC_IP }}
+
       - name: Debug SSH Connection
         run: ssh -i workflow-rust.pem -vvv ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'echo Debugging SSH connection'
 
