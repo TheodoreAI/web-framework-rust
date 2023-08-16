@@ -13,9 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build Docker image
-        run: docker build -t rust-app:${{ github.sha }} .
-
       - name: Setup SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > workflow-rust.pem
@@ -23,6 +20,9 @@ jobs:
 
       - name: Debug SSH Connection
         run: ssh -i workflow-rust.pem -vvv ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'echo Debugging SSH connection'
+
+      - name: Build Docker image
+        run: docker build -t rust-app:${{ github.sha }} .
 
       - name: Stop and remove existing container
         run: |
