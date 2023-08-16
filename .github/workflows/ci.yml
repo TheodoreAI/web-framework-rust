@@ -34,5 +34,5 @@ jobs:
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > workflow-rust.pem
           chmod 600 workflow-rust.pem
-          ssh -i workflow-rust.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name amazing_diffie -p 8080:8080 rust-app:version_1'
+          ssh -i workflow-rust.pem ubuntu@${{ secrets.EC2_PUBLIC_IP }} 'docker run -d --name amazing_diffie -p ${{secrets.EC2_PUBLIC_IP }}:8080:8080 rust-app:version_1'
           rm -f workflow-rust.pem
