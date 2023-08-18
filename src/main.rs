@@ -33,16 +33,12 @@ fn create_and_work_shared_data() -> Arc<Mutex<Vec<String>>> {
 fn index() -> Template {
     Template::render(
         "index",
-        context! { title_page: "Dashboard", app_name: "Rust Website", data_table: [1, 2, 3, 4, 5] },
+        context! { title_page: "Dashboard", app_name: "Rust Website", data_table: [1, 2, 3, 4, 5], description: "The following is a project that I am working on to learn Rust. I am using the Rocket framework to build a website. I am also using the Rocket rocket_dyn_templates to render Handlebar templates. The goal is to program a set of Arcade games of names from A-Z."},
     )
 }
 
 #[get("/home")]
 fn home() -> Template {
-    println!(
-        "reading in home template function {}",
-        reading_json_file("users.json")
-    );
 
     Template::render(
         "home",
@@ -93,7 +89,6 @@ fn blogs(search: Option<String>) -> Template {
         }
     }
     let filtered_blogs = serde_json::to_value(&filtered_blogs).unwrap();
-    println!("filtered_blogs: {}", filtered_blogs);
     Template::render(
         "blogs",
         context! { title: "Blogs", field_two: "Blog posts", blogs: filtered_blogs, query_not_found: query_not_found, found_msg: found_msg, is_blogs_page: true},
@@ -133,7 +128,6 @@ async fn add_data(add: Form<Add>) -> Template {
 
     let data_json = json!(&*SHARED_DATA.lock().await);
     // return the template with the success message and the data_locked
-    println!("Vector content: {:?}", data_json);
     return Template::render(
         "home",
         json!({ "success_msg": "Name added.", "data": data_json }),

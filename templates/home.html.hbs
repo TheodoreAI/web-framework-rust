@@ -41,34 +41,19 @@
         class BreakoutGame {
             constructor(canvas, mouseX){
                 this.canvas = canvas;
-             
                 this.ctx = canvas.getContext("2d");
                 this.paddle = new Paddle(canvas);
                 this.ball = new Ball(canvas);
                 this.numberBricks = 50;
+                this.gameEnded = false;
+                this.numberLives = 3;
+                this.colors = ["rgb(204, 77, 80)"];
 
                 // Create the bricks in a single array
                 this.bricks = [];
-                // make an array of warm and cool colors with only names
-                const colors = ["red", "orange", "yellow", "green", "blue", "purple"];
 
                 // init random value in the range of the length of the colors array
-                
-
-                for (let i = 0; i < this.numberBricks; i++) {
-                    // Calculate the brick's x and y position based on its index
-                    const brickX = (i % 6) * 100;
-                    const brickY = Math.floor(i / 6) * 20;
-                    const positionX = brickX + 10;
-                    const positionY = brickY + 10;
-
-                    // Get a random color from the colors array
-                    // make a new seed for the random number generator each time
-                    const randomColor = Math.floor(Math.random() * colors.length);
-                    const r = colors[randomColor];
-                    
-                    this.bricks.push(new Brick(canvas, positionX, positionY, r)); // Pass canvas and other parameters here
-                }
+                this.makesBricks(this.colors);
                 
                 
                 this.mouseX = canvas.width / 2;
@@ -81,25 +66,96 @@
                 this.mouseX = event.clientX - this.canvas.getBoundingClientRect().left;
             }
 
+            gameOverMsg(){
+                this.ctx.font = "30px Arial";
+                this.ctx.fillStyle = "black";
+                this.ctx.fillText("Game Over", this.canvas.width / 2 - 50, this.canvas.height / 2);
+                        
+            }
+
+            makesBricks(colors){
+                for (let i = 0; i < this.numberBricks; i++) {
+                    // Calculate the brick's x and y position based on its index
+                    const brickX = (i % 6) * 100;
+                    const brickY = Math.floor(i / 6) * 20;
+                    const positionX = brickX + 10;
+                    const positionY = brickY + 10;
+
+                    // Get a random color from the colors array
+                    // make a new seed for the random number generator each time
+                    const randomColor = Math.floor(Math.random() * colors.length);
+                    const r = colors[randomColor];
+                    this.bricks.push(new Brick(this.canvas, positionX, positionY, r)); // Pass canvas and other parameters here
+                }
+            }
+
+            resetBricksArray(){
+                // clear the bricks array
+                this.bricks = [];
+                // init random value in the range of the length of the colors array
+                this.makesBricks(this.colors);
+            }
+
+            drawRestartButton(){
+                // if game ended is true and the number of lives is greater than 0
+                // draw the restart button to the middle of the screen
+                if(this.gameEnded && this.numberLives > 0){
+                    const restartButton = document.createElement("restart-button");
+                    restartButton.innerText = "Restart";
+                    document.body.appendChild(restartButton);
+                    // put the button in the middle of the screen
+                    restartButton.style.position = "absolute";
+                    restartButton.style.top = "40%";
+                    restartButton.style.left = "50%";
+                    restartButton.style.transform = "translate(-50%, -50%)";
+                    restartButton.className = "btn btn-primary btn-lg";
+                    restartButton.addEventListener("click", () => {
+                        this.resetGame();
+                        restartButton.remove();
+                        console.log("restart");
+                    });
+                }
+            }
+
+            removeRestartButton(){
+                const restartButton = document.querySelector("restart-button");
+                if(restartButton){
+                    restartButton.remove();
+                }
+            }
+
 
             update(){
+
+                if(this.gameEnded){  
+                    if(this.numberLives === 0){
+                       this.gameOverMsg();
+                        return;
+                    }
+                }
+
                 this.ball.update(this.ctx); // update the ball
                 // update the paddle with the mouseX position
                 this.paddle.update(this.mouseX);
                 
+                // check for collision with the bottom wall 
+                if (this.ball.y + this.ball.radius >= this.canvas.height) {
+                    this.numberLives--;
+                    console.log("collision with bottom wall");
+                    this.gameEnded = true;
+                }
                 
                 // Check for collision with the paddle
                 if (
-                    this.ball.y + this.ball.radius > this.paddle.y &&
-                    this.ball.y - this.ball.radius < this.paddle.y + this.paddle.height &&
-                    this.ball.x + this.ball.radius > this.paddle.x &&
-                    this.ball.x - this.ball.radius < this.paddle.x + this.paddle.width
+                    this.ball.y + this.ball.radius >= this.paddle.y &&
+                    this.ball.y - this.ball.radius <= this.paddle.y + this.paddle.height &&
+                    this.ball.x + this.ball.radius >= this.paddle.x &&
+                    this.ball.x - this.ball.radius <= this.paddle.x + this.paddle.width
                 ) {
                     // Collision with the paddle
                     // Reverse the ball's y-direction to bounce it off the paddle
                     this.ball.dy = -this.ball.dy;
                 }
-
 
                 // Iterate through the bricks and check for collision with the ball
                 for (let i = 0; i < this.bricks.length; i++) {
@@ -129,8 +185,26 @@
                 this.bricks.forEach((brick) => {
                     brick.draw(this.ctx);
                 });
-            }
 
+                // draw the number of lives to the top left corner of the screen
+                this.ctx.font = "30px Arial";
+                this.ctx.fillStyle = "black";
+                this.ctx.fillText("Lives: " + this.numberLives, 10, 30);
+
+                if(this.gameEnded){
+                    this.drawRestartButton();
+                }else{
+                    this.removeRestartButton();
+                }
+            }
+            
+            resetGame(){
+                this.ball.reset();
+                this.paddle.reset();
+                this.resetBricksArray();
+                this.gameEnded = false;
+                this.numberLives = 3;
+            }
             // game loop to setup the update, draw, and requestAnimationFrame
             gameLoop(){
                 this.update();
@@ -149,28 +223,33 @@
                 this.dx = 5;
                 this.dy = -5;
                 this.radius = 10;
+                this.LEFT_BOUNDARY = 0;
+                this.RIGHT_BOUNDARY = canvas.width;
+                this.TOP_BOUNDARY = 0;
+                this.BOTTOM_BOUNDARY = canvas.height;
             }
 
             update(){
-                // move the ball
+                // Move the ball
                 this.x += this.dx;
                 this.y += this.dy;
 
-                // check for collision with the walls and reverse the direction of the ball
-                if(this.x + this.radius > this.canvas.width || this.x - this.radius < 0){
+                // Check for collision with the walls and reverse the direction of the ball
+                if (this.x + this.radius >= this.RIGHT_BOUNDARY || this.x - this.radius <= this.LEFT_BOUNDARY) {
                     this.dx = -this.dx;
                 }
 
-                // check for collision with the top wall only
-                if(this.y - this.radius < 0){
+                // Check for collision with the top wall
+                if (this.y - this.radius <= this.TOP_BOUNDARY) {
                     this.dy = -this.dy;
                 }
 
-                // check for collision with the bottom wall
-                if(this.y + this.radius > this.canvas.height){
+                // Check for collision with the bottom wall
+                if (this.y + this.radius >= this.BOTTOM_BOUNDARY) {
                     this.dy = 0;
                     this.dx = 0;
                 }
+
             }
 
             draw(ctx){
@@ -179,6 +258,13 @@
                 ctx.fillStyle = "black";
                 ctx.fill();
                 ctx.closePath();
+            }
+
+            reset(){
+                this.x = this.canvas.width / 2;
+                this.y = this.canvas.height / 2;
+                this.dx = 5;
+                this.dy = -5;
             }
         }
 
@@ -213,6 +299,13 @@
                 ctx.fill();
                 ctx.closePath();
             }
+
+            reset(){
+                this.x = this.canvas.width / 2 - this.width / 2;
+                this.y = this.canvas.height - this.height - 10;
+                this.dx = 5;
+                this.dy = 0;
+            }
         }
 
         // Brick class
@@ -234,9 +327,18 @@
             draw(ctx){
                 ctx.beginPath();
                 ctx.rect(this.x, this.y, this.width, this.height);
+                ctx.strokeStyle = "white";
                 ctx.fillStyle = this.color;
+                ctx.stroke();
                 ctx.fill();
                 ctx.closePath();
+            }
+
+            reset(){
+                this.x = x;
+                this.y = y;
+                this.dx = 5;
+                this.dy = 5;
             }
 
         }
@@ -341,7 +443,7 @@
             // draw walls 
             drawWalls(){
                 // Draw the top and bottom walls
-                this.ctx.fillStyle = "blue";
+                this.ctx.fillStyle = "rgb(196, 0, 121)";
                 this.ctx.fillRect(0, 0, this.canvas.width, 10);
                 this.ctx.fillRect(0, this.canvas.height - 10, this.canvas.width, 10);
 
