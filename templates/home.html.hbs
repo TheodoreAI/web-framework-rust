@@ -3,208 +3,481 @@
 <head>
     <title>Home</title>
 </head>
-<body>
+<body class="bg-dark">
     {{>partials/navbar}}
    <div class="container">
         {{!-- games will be here --}}
-        <div class="card">
-            <div class="bg-secondary card-header text-center">
-                <h1>Games</h1>
-            </div>
-            <div class="card-body">
-                {{!-- here you will render the compiled rust code that will run on the browser the game --}}
-                <div class="row" id="gameOne">
-                    <h2>Pong</h2>
-                    <div class="col-12 d-flex justify-content-center align-items-center" style="height: 50vh;">
-                        <canvas id="pongCanvas" width="500" height="400"></canvas>
+        <div class="card bg-dark">
+            <div class="text-center text-light">
+                <div class="text-center"><h1>Games</h1></div>
+                <div class="row">
+                    <p class="lead text-center">Please select a game you would like to play</p>
+                    <div class="game-selection text-center col-12">
+                        <ul  style="list-style: none">
+                            <li><button class="game-button btn btn-primary bg-lg col-5 m-3 p-2" style="background-color: rgb(197, 0, 21);" data-game="pong">Pong</button></li>
+                            <li><button class="game-button btn btn-primary bg-lg col-5 m-3 p-2" style="background-color: rgb(42, 122, 162);" data-game="breakout">Breakout</button></li>
+                        </ul>
                     </div>
                 </div>
             </div>
+            <div class="card-body bg-dark">
+                {{!-- here you will render the compiled rust code that will run on the browser the game --}}
+                <div class="row" id="gameOne">
+                    <div class="col-12 d-flex justify-content-center align-items-center" style="height: 50vh;">
+                        <canvas id="pongCanvas" width="700" height="500" style="background-color: rgb(216, 230, 232);"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                
+            </div>
+            
 
         </div>
    </div>
-   {{!-- make a javascript element that looks for an element with id="gameOne" 
-   then write the logic for a simple pong game --}}
     <script type="module">
+
+        // Breakout game logic
+        class BreakoutGame {
+            constructor(canvas, mouseX){
+                this.canvas = canvas;
+             
+                this.ctx = canvas.getContext("2d");
+                this.paddle = new Paddle(canvas);
+                this.ball = new Ball(canvas);
+                this.numberBricks = 50;
+
+                // Create the bricks in a single array
+                this.bricks = [];
+                // make an array of warm and cool colors with only names
+                const colors = ["red", "orange", "yellow", "green", "blue", "purple"];
+
+                // init random value in the range of the length of the colors array
+                
+
+                for (let i = 0; i < this.numberBricks; i++) {
+                    // Calculate the brick's x and y position based on its index
+                    const brickX = (i % 6) * 100;
+                    const brickY = Math.floor(i / 6) * 20;
+                    const positionX = brickX + 10;
+                    const positionY = brickY + 10;
+
+                    // Get a random color from the colors array
+                    // make a new seed for the random number generator each time
+                    const randomColor = Math.floor(Math.random() * colors.length);
+                    const r = colors[randomColor];
+                    
+                    this.bricks.push(new Brick(canvas, positionX, positionY, r)); // Pass canvas and other parameters here
+                }
+                
+                
+                this.mouseX = canvas.width / 2;
+                canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
+
+            }
+             
+
+            handleMouseMove(event){
+                this.mouseX = event.clientX - this.canvas.getBoundingClientRect().left;
+            }
+
+
+            update(){
+                this.ball.update(this.ctx); // update the ball
+                // update the paddle with the mouseX position
+                this.paddle.update(this.mouseX);
+                
+                
+                // Check for collision with the paddle
+                if (
+                    this.ball.y + this.ball.radius > this.paddle.y &&
+                    this.ball.y - this.ball.radius < this.paddle.y + this.paddle.height &&
+                    this.ball.x + this.ball.radius > this.paddle.x &&
+                    this.ball.x - this.ball.radius < this.paddle.x + this.paddle.width
+                ) {
+                    // Collision with the paddle
+                    // Reverse the ball's y-direction to bounce it off the paddle
+                    this.ball.dy = -this.ball.dy;
+                }
+
+
+                // Iterate through the bricks and check for collision with the ball
+                for (let i = 0; i < this.bricks.length; i++) {
+                    const brick = this.bricks[i];
+
+                    // Check for collision with the ball
+                    if (
+                        this.ball.x + this.ball.radius > brick.x &&
+                        this.ball.x - this.ball.radius < brick.x + brick.width &&
+                        this.ball.y + this.ball.radius > brick.y &&
+                        this.ball.y - this.ball.radius < brick.y + brick.height
+                    ) {
+                        // Collision with a brick
+                        this.ball.dy = -this.ball.dy; // Reverse the ball's y-direction
+                        this.bricks.splice(i, 1); // Remove the brick from the array
+                    }
+                }
+            }
+
+            draw(){
+                // clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // draw the game elements
+                this.ball.draw(this.ctx);
+                this.paddle.draw(this.ctx);
+                this.bricks.forEach((brick) => {
+                    brick.draw(this.ctx);
+                });
+            }
+
+            // game loop to setup the update, draw, and requestAnimationFrame
+            gameLoop(){
+                this.update();
+                this.draw();
+                requestAnimationFrame(this.gameLoop.bind(this));
+            }
+        }
+
+
+        // Ball class
+        class Ball {
+            constructor(canvas){
+                this.canvas = canvas;
+                this.x = 200;
+                this.y = 200;
+                this.dx = 5;
+                this.dy = -5;
+                this.radius = 10;
+            }
+
+            update(){
+                // move the ball
+                this.x += this.dx;
+                this.y += this.dy;
+
+                // check for collision with the walls and reverse the direction of the ball
+                if(this.x + this.radius > this.canvas.width || this.x - this.radius < 0){
+                    this.dx = -this.dx;
+                }
+
+                // check for collision with the top wall only
+                if(this.y - this.radius < 0){
+                    this.dy = -this.dy;
+                }
+
+                // check for collision with the bottom wall
+                if(this.y + this.radius > this.canvas.height){
+                    this.dy = 0;
+                    this.dx = 0;
+                }
+            }
+
+            draw(ctx){
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "black";
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Paddle class
+
+        class Paddle {
+            constructor(canvas){
+                this.canvas = canvas;
+                this.width = 100;
+                this.height = 20;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - this.height - 10;
+                this.dx = 5;
+                this.dy = 0;
+            }
+
+            update(mouseX){
+                // move the paddle
+                this.x = mouseX - this.width / 2;
+                // ensure the paddle does not go off the screen
+                if(this.x < 0){
+                    this.x = 0;
+                }else if(this.x + this.width > this.canvas.width){
+                    this.x = this.canvas.width - this.width;
+                }
+            }
+
+            draw(ctx){
+                ctx.beginPath();
+                ctx.rect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = "black";
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Brick class
+
+        class Brick {
+            constructor(canvas, x, y, color){
+                this.canvas = canvas;
+                this.width = 100;
+                this.height = 20;
+                this.color = color;
+                this.x = x;
+                this.y = y;
+                this.dx = 5;
+                this.dy = 5;
+            }
+
+            update(ctx){}
+
+            draw(ctx){
+                ctx.beginPath();
+                ctx.rect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+        }
+
+
+
+        // Class based logic
+        class PongGame {
+            constructor(canvas){
+                this.canvas = canvas;
+                this.ctx = canvas.getContext("2d");
+                this.score = 0;
+                this.gameEnded = false;
+                this.playButton = this.drawPlayButton();
+                this.playButton.addEventListener("click", () => {
+                  
+                    this.play();
+                    // change the canvas background color
+                    this.canvas.style.backgroundColor = "rgb(130, 192, 201)";
+                    // remove the play button from the DOM after the game has started
+                    this.playButton.remove();
+                });
+               
+
+                // init ball properties
+                this.ballX = this.canvas.width / 2;
+                this.ballY = this.canvas.height / 2;
+                this.ballSpeedX = 0;
+                this.ballSpeedY = 0;
+
+
+                // init paddle properties
+
+                this.paddleWidth = 10;
+                this.paddleHeight = 100;
+                this.leftPaddleY = this.canvas.height / 2 - this.paddleHeight / 2;
+                this.rightPaddleY = this.canvas.height / 2 - this.paddleHeight / 2;
+
+                // set up mouse movement listener
+                this.canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
+
+                this.update();
+
+            }
+
+            // draw start button
+            drawPlayButton(){
+                // make a button to start the game by setting the ball speed to 5
+                const playButton = document.createElement("button");
+                playButton.innerText = "Play";
+                document.body.appendChild(playButton);
+                // put the button in the middle of the screen
+                playButton.style.position = "absolute";
+                playButton.style.top = "40%";
+                playButton.style.left = "50%";
+                playButton.style.transform = "translate(-50%, -50%)";
+                playButton.className = "btn btn-primary btn-lg";
+                return playButton;
+            }
+
+            // start game
+
+            play(){
+                // start the game
+                this.ballSpeedX = 3;
+                this.ballSpeedY = 3;
+                this.ballX = this.canvas.width / 2;
+                this.ballY = this.canvas.height / 2;
+                this.score = 0;
+                this.gameEnded = false;
+            }
+
+            //handle mouse move
+            handleMouseMove(event){
+                // Get the mouse position
+                const rect = this.canvas.getBoundingClientRect();
+                const root = document.documentElement;
+                const mouseY = event.clientY - rect.top - root.scrollTop;
+
+                // Move both paddles
+                this.leftPaddleY = mouseY - this.paddleHeight / 2;
+                this.rightPaddleY = mouseY - this.paddleHeight / 2;
+
+                // Prevent the paddles from moving off the screen
+                if (this.leftPaddleY < 0) {
+                    this.leftPaddleY = 0;
+                }
+
+                if (this.leftPaddleY > this.canvas.height - this.paddleHeight) {
+                    this.leftPaddleY = this.canvas.height - this.paddleHeight;
+                }
+
+                if (this.rightPaddleY < 0) {
+                    this.rightPaddleY = 0;
+                }
+
+                if (this.rightPaddleY > this.canvas.height - this.paddleHeight) {
+                    this.rightPaddleY = this.canvas.height - this.paddleHeight;
+                }
+            }
+
+            // draw walls 
+            drawWalls(){
+                // Draw the top and bottom walls
+                this.ctx.fillStyle = "blue";
+                this.ctx.fillRect(0, 0, this.canvas.width, 10);
+                this.ctx.fillRect(0, this.canvas.height - 10, this.canvas.width, 10);
+
+            }
+
+
+            // draw the scoreboard 
+            drawScore(){
+                // make a score board on the top left corner of the screen in the canvas
+                this.ctx.font = "30px Arial";
+                this.ctx.fillStyle = "black";
+                this.ctx.fillText("Score: " + this.score, 10, 30);
+
+            }
+            // update game logic
+            update(){
+            
+                // Move the ball
+                this.ballX += this.ballSpeedX;
+                this.ballY += this.ballSpeedY;
+
+                this.drawScore();
+
+                // Check collision with top and bottom walls
+                if (this.ballY < 0 || this.ballY > this.canvas.height) {
+                    this.ballSpeedY = -this.ballSpeedY;
+                }
+
+                // check collision with left and right walls
+                if (this.ballX < 0 || this.ballX > this.canvas.width) {
+                    this.ballSpeedX = 0;
+                    this.ballSpeedY = 0;
+                    this.gameEnded = true;
+                    return;
+                }
+
+                // Check collision with left paddle
+                if (this.ballX < this.paddleWidth && this.ballY > this.leftPaddleY && this.ballY < this.leftPaddleY + this.paddleHeight) {
+                    this.ballSpeedX = -(this.ballSpeedX - .5); // Reflect the ball's horizontal motion
+                    this.score++;
+                   
+                }
+
+                // Check collision with right paddle
+                if (
+                    this.ballX > this.canvas.width - this.paddleWidth && // Right edge of ball
+                    this.ballY > this.rightPaddleY && this.ballY < this.rightPaddleY + this.paddleHeight // Within paddle's vertical range
+                ) {
+                    this.ballSpeedX = -(this.ballSpeedX + .5); // Reflect the ball's horizontal motion
+                    this.score++;
+                }
+
+                // clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw paddles
+                this.ctx.fillStyle = "black";
+                this.ctx.fillRect(0, this.leftPaddleY, this.paddleWidth, this.paddleHeight);
+                this.ctx.fillRect(this.canvas.width - this.paddleWidth, this.rightPaddleY, this.paddleWidth, this.paddleHeight);
+
+                // Draw the ball
+                this.ctx.beginPath();
+                this.ctx.arc(this.ballX, this.ballY, 10, 0, Math.PI * 2);
+                this.ctx.fillStyle = "black";
+                this.ctx.fill();
+
+                // Draw the walls
+                this.drawWalls();
+            }
+
+
+        }
+
         // Wait for the DOM to be loaded
         document.addEventListener("DOMContentLoaded", () => {
             // Get the canvas element
             const canvas = document.getElementById("pongCanvas");
             const ctx = canvas.getContext("2d");
-            // score
-            let score = 0;
-            let gameEnded = false;
 
-            const startButton = drawStartButton();
-            // listen for the button to be clicked
-            startButton.addEventListener("click", () => {
-                // start the game
-                ballSpeedX = 3;
-                ballSpeedY = 3;
-                ballX = canvas.width / 2;
-                ballY = canvas.height / 2;
-                score = 0;
+            let currentGame = null;
 
-            });
-
-            // add score to the page
-            const scoreElement = document.createElement("h2");
-            scoreElement.innerText = score;
-            document.body.appendChild(scoreElement);
-            // put the score on the page in the middle
-            scoreElement.style.position = "absolute";
-            scoreElement.style.top = "20%";
-            scoreElement.style.left = "50%";
-            scoreElement.style.transform = "translate(-50%, -50%)";
-
-
-            // Ball properties
-            let ballX = canvas.width / 2;
-            let ballY = canvas.height / 2;
-            let ballSpeedX = 0; // Adjust this value to control ball speed
-            let ballSpeedY = 0; // Adjust this value to control ball speed
-
-            // Paddle properties
-            const paddleWidth = 10;
-            const paddleHeight = 100;
-            let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
-            let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
-
-            function drawWalls(){
-                // Draw the top and bottom walls
-                ctx.fillStyle = "blue";
-                ctx.fillRect(0, 0, canvas.width, 10);
-                ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
-
-            }
-            function drawStartButton(){
-                // make a button to start the game by setting the ball speed to 5
-                const startButton = document.createElement("button");
-                startButton.innerText = "Start Game";
-                document.body.appendChild(startButton);
-                // put the button in the middle of the screen
-                startButton.style.position = "absolute";
-                startButton.style.top = "15%";
-                startButton.style.left = "50%";
-                startButton.style.transform = "translate(-50%, -50%)";
-                startButton.className = "btn btn-primary";
-                return startButton;
-            }
-
-            // Update function to handle game logic and drawing
-            function update() {
-
-                // Move the ball
-                ballX += ballSpeedX;
-                ballY += ballSpeedY;
-
-                // Check collision with top and bottom walls
-                if (ballY < 0 || ballY > canvas.height) {
-                    ballSpeedY = -ballSpeedY;
-                }
-
-                // check collision with left and right walls
-                if (ballX < 0 || ballX > canvas.width) {
-                    ballSpeedX = 0;
-                    ballSpeedY = 0;
-                    gameEnded = true;
-                }
-
-                // Check collision with left paddle
-                if (ballX < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
-                    ballSpeedX = -ballSpeedX;
-                    score++;
-                    scoreElement.innerText = score;
-                    ballSpeedX += 0.2;
-                    ballSpeedY += 0.2;
-                  
-                }
-
-              // Check collision with right paddle
-                if (
-                    ballX > canvas.width - paddleWidth && // Right edge of ball
-                    ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight // Within paddle's vertical range
-                ) {
-                    ballSpeedX = -ballSpeedX; // Reflect the ball's horizontal motion
-                    // You can also adjust the ball's vertical motion here if desired
-                    // Example: ballSpeedY += someValue;
-                    score++;
-                    scoreElement.innerText = score;
-                }
-
-
-
-                // Clear the canvas
+            function clearCanvas(){
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Draw paddles
-                ctx.fillStyle = "black";
-                ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
-                ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
-
-                // Draw the ball
-                ctx.beginPath();
-                ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
-                ctx.fillStyle = "black";
-                ctx.fill();
-                ctx.closePath();
-
-                // Draw the walls
-                drawWalls();
-
-                // Request the next animation frame
-                requestAnimationFrame(update);
             }
 
-            // Start the game
-            update();
+            // function to start new game
+            function startGame(selectedGame){
+                // clear cavnas before starting a new game
+                clearCanvas();
 
+                // init the selected game
+                currentGame = selectedGame;
+                // start the game loop
+                update();
+            }
 
-            // Listen for mouse movement
-            canvas.addEventListener("mousemove", (event) => {
-                // Get the mouse position
-                const rect = canvas.getBoundingClientRect();
-                const root = document.documentElement;
-                const mouseY = event.clientY - rect.top - root.scrollTop;
-
-                // Move both paddles
-                leftPaddleY = mouseY - paddleHeight / 2;
-                rightPaddleY = mouseY - paddleHeight / 2;
-
-                // Prevent the paddles from moving off the screen
-                if (leftPaddleY < 0) {
-                    leftPaddleY = 0;
+            // main update loop
+            function update(){
+                if(currentGame){
+                    currentGame.update();
+                    requestAnimationFrame(update);
                 }
+            }
+            function startBreakout(gameInstance){
+                clearCanvas();
+                gameInstance.gameLoop();
+            }
 
-                if (leftPaddleY > canvas.height - paddleHeight) {
-                    leftPaddleY = canvas.height - paddleHeight;
-                }
+            // Game selection UI
+            const gameButtons = document.querySelectorAll(".game-button");
+            gameButtons.forEach((button)=> {
+                button.addEventListener("click", () => {
+                     
+                    const selectedGame = button.getAttribute("data-game");
+                    if(selectedGame === "pong"){
+                       
+                        window[selectedGame] = new PongGame(canvas);
+                        startGame(window[selectedGame]);
+                    }
+                    if(selectedGame === "breakout"){
+                        window[selectedGame] = new BreakoutGame(canvas);
+                        startBreakout(window[selectedGame]);
+                    }
+                   
+                });
 
-                if (rightPaddleY < 0) {
-                    rightPaddleY = 0;
-                }
-
-                if (rightPaddleY > canvas.height - paddleHeight) {
-                    rightPaddleY = canvas.height - paddleHeight;
-                }
             });
-
-
-            // listen for key presses
-            // if key is pressed then move paddle up or down
-            // if key is pressed then move paddle up or down
-            canvas.addEventListener("keydown", (event) => {
-                if (event.key === "ArrowUp") {
-                    // move paddle up
-                    leftPaddleY -= 10;
-                } else if (event.key === "ArrowDown") {
-                    // move paddle down
-                    leftPaddleY += 10;
-                }
-            });
-
+           
         });
     </script>
+    <style>
+        #pongCanvas {
+            font-family: monospace; /* Use the default monospace font for a pixelated effect */
+        }
+    </style>
+   
 
 </body>
 </html>
