@@ -156,6 +156,7 @@ fn rocket() -> _ {
         .configure(
             rocket::Config::figment()
                 .merge(("port", 8080))
+                .merge(("address", "0.0.0.0")),
         )
         .attach(Template::fairing())
         .mount("/", routes![index, home, about, search, add_data, blogs])
