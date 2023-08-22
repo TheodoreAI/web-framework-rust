@@ -4,14 +4,14 @@
     <title>{{about_us.title}}</title>
 
 </head>
-<body>
+<body class="bg-secondary">
     {{>partials/navbar}}
     {{!-- about_us page content for a website to fill with static content --}}
     <div class="container">
         <h1 class="mt-5">{{ about_us.title }}</h1>
         <p>{{ description }}</p>
 
-        <div class="bg-secondary border rounded-3">
+        <div class="bg-dark border rounded-3">
             <h2 class="mt-4 m-3 p-2 text-white">Programmers</h2>
             <ul class="list-group">
                 {{#each about_us.founders}}

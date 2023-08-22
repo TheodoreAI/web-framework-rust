@@ -62,7 +62,6 @@ fn blogs(search: Option<String>) -> Template {
     let html_output = markdown_to_html_strings(&get_all_blogs());
     // converts the html into an array of json objects that can be used in the template in a for loop
     let html_output = serde_json::to_value(&html_output).unwrap();
-    println!("html_output: {}", html_output);
     // if the search query is empty, then all the blogs will be displayed
     if search.is_none() {
         return Template::render(
@@ -71,7 +70,7 @@ fn blogs(search: Option<String>) -> Template {
         );
     }
 
-    let mut query_not_found = false;
+    let mut query_not_found = true;
     let mut found_msg = "Search query found";
 
     let search = search.unwrap();
@@ -82,11 +81,8 @@ fn blogs(search: Option<String>) -> Template {
             filtered_blogs.push(blog.to_string());
             query_not_found = false;
             found_msg = "Search query found";
-        } else {
-            println!("No search query found");
-            query_not_found = true;
-            found_msg = "No search query found";
-        }
+            println!("FOUND IT");
+        } 
     }
     let filtered_blogs = serde_json::to_value(&filtered_blogs).unwrap();
     Template::render(
