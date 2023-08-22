@@ -7,20 +7,25 @@
     {{>partials/navbar}}
    <div class="container">
         {{!-- games will be here --}}
-        <div class="card bg-dark">
+        <div class="bg-dark">
             <div class="text-center text-light">
-                <div class="text-center"><h1>Games</h1></div>
+                <div class="text-center"><h1>Arcade Games</h1></div>
                 <div class="row">
                     <p class="lead text-center">Please select a game you would like to play</p>
-                    <div class="game-selection text-center col-12">
-                        <ul  style="list-style: none">
-                            <li><button class="game-button btn btn-primary bg-lg col-5 m-3 p-2" style="background-color: rgb(197, 0, 21);" data-game="pong">Pong</button></li>
-                            <li><button class="game-button btn btn-primary bg-lg col-5 m-3 p-2" style="background-color: rgb(42, 122, 162);" data-game="breakout">Breakout</button></li>
-                        </ul>
+                    <div class="game-selection text-center">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                              Select A Game
+                            </button>
+                            <ul class="dropdown-menu m-3 p-2" aria-labelledby="dropdownMenuButton1">
+                              <li class="row m-1 p-2"><button class="game-button btn btn-primary dropdown-item text-light text-center rounded-1" style="background-color: rgb(197, 0, 21);" data-game="pong">Pong</button></li>
+                              <li class="row m-1 p-2"><button class="game-button btn btn-primary dropdown-item text-light text-center rounded-1" style="background-color: rgb(42, 122, 162);" data-game="breakout">Breakout</button></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body bg-dark">
+            <div class="bg-dark">
                 {{!-- here you will render the compiled rust code that will run on the browser the game --}}
                 <div class="row" id="gameOne">
                     <div class="col-12 d-flex justify-content-center align-items-center" style="height: 50vh;">
@@ -35,6 +40,10 @@
 
         </div>
    </div>
+   <script
+      src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'
+      crossorigin='anonymous'
+    ></script>
     <script type="module">
 
         // Breakout game logic
@@ -45,9 +54,10 @@
                 this.paddle = new Paddle(canvas);
                 this.ball = new Ball(canvas);
                 this.numberBricks = 50;
-                this.gameEnded = false;
+                this.paused = false;
                 this.numberLives = 3;
                 this.colors = ["rgb(204, 77, 80)"];
+                this.gameOver = false;
 
                 // Create the bricks in a single array
                 this.bricks = [];
@@ -64,13 +74,6 @@
 
             handleMouseMove(event){
                 this.mouseX = event.clientX - this.canvas.getBoundingClientRect().left;
-            }
-
-            gameOverMsg(){
-                this.ctx.font = "30px Arial";
-                this.ctx.fillStyle = "black";
-                this.ctx.fillText("Game Over", this.canvas.width / 2 - 50, this.canvas.height / 2);
-                        
             }
 
             makesBricks(colors){
@@ -96,54 +99,28 @@
                 this.makesBricks(this.colors);
             }
 
-            drawRestartButton(){
-                // if game ended is true and the number of lives is greater than 0
-                // draw the restart button to the middle of the screen
-                if(this.gameEnded && this.numberLives > 0){
-                    const restartButton = document.createElement("restart-button");
-                    restartButton.innerText = "Restart";
-                    document.body.appendChild(restartButton);
-                    // put the button in the middle of the screen
-                    restartButton.style.position = "absolute";
-                    restartButton.style.top = "40%";
-                    restartButton.style.left = "50%";
-                    restartButton.style.transform = "translate(-50%, -50%)";
-                    restartButton.className = "btn btn-primary btn-lg";
-                    restartButton.addEventListener("click", () => {
-                        this.resetGame();
-                        restartButton.remove();
-                        console.log("restart");
-                    });
-                }
-            }
-
-            removeRestartButton(){
-                const restartButton = document.querySelector("restart-button");
-                if(restartButton){
-                    restartButton.remove();
-                }
-            }
-
 
             update(){
-
-                if(this.gameEnded){  
-                    if(this.numberLives === 0){
-                       this.gameOverMsg();
-                        return;
-                    }
+                if(this.numberLives === 0){
+                    this.gameOver = true;
+                    // exit the update loop
+                    return;
+                }
+                 // check for collision with the bottom wall 
+                if (this.ball.y + this.ball.radius >= this.canvas.height && !this.lostLife) {
+                    // make sure the number of lives is decremented only once per collision
+                    this.paused = true;
+                    this.numberLives--;
+                    console.log("collision with bottom wall");
+                    this.continueGame();
+                    
                 }
 
                 this.ball.update(this.ctx); // update the ball
                 // update the paddle with the mouseX position
                 this.paddle.update(this.mouseX);
                 
-                // check for collision with the bottom wall 
-                if (this.ball.y + this.ball.radius >= this.canvas.height) {
-                    this.numberLives--;
-                    console.log("collision with bottom wall");
-                    this.gameEnded = true;
-                }
+               
                 
                 // Check for collision with the paddle
                 if (
@@ -191,22 +168,24 @@
                 this.ctx.fillStyle = "black";
                 this.ctx.fillText("Lives: " + this.numberLives, 10, 30);
 
-                if(this.gameEnded){
-                    this.drawRestartButton();
-                }else{
-                    this.removeRestartButton();
-                }
             }
             
-            resetGame(){
+            continueGame(){
                 this.ball.reset();
                 this.paddle.reset();
                 this.resetBricksArray();
-                this.gameEnded = false;
-                this.numberLives = 3;
+                this.paused = false;
             }
             // game loop to setup the update, draw, and requestAnimationFrame
             gameLoop(){
+                if(this.gameOver){
+                    
+                    console.log("game over");
+                    this.ctx.font = "40px Arial";
+                    this.ctx.fillStyle = "black";
+                    this.ctx.fillText("Game Over", this.canvas.width / 2 - 50, this.canvas.height / 4);  
+                    return;
+                }
                 this.update();
                 this.draw();
                 requestAnimationFrame(this.gameLoop.bind(this));
@@ -227,6 +206,10 @@
                 this.RIGHT_BOUNDARY = canvas.width;
                 this.TOP_BOUNDARY = 0;
                 this.BOTTOM_BOUNDARY = canvas.height;
+            }
+
+            getVerticalSpeed(){
+                return this.dy;
             }
 
             update(){
@@ -351,7 +334,7 @@
                 this.canvas = canvas;
                 this.ctx = canvas.getContext("2d");
                 this.score = 0;
-                this.gameEnded = false;
+                this.paused = false;
                 this.playButton = this.drawPlayButton();
                 this.playButton.addEventListener("click", () => {
                   
@@ -408,7 +391,7 @@
                 this.ballX = this.canvas.width / 2;
                 this.ballY = this.canvas.height / 2;
                 this.score = 0;
-                this.gameEnded = false;
+                this.paused = false;
             }
 
             //handle mouse move
@@ -441,13 +424,7 @@
             }
 
             // draw walls 
-            drawWalls(){
-                // Draw the top and bottom walls
-                this.ctx.fillStyle = "rgb(196, 0, 121)";
-                this.ctx.fillRect(0, 0, this.canvas.width, 10);
-                this.ctx.fillRect(0, this.canvas.height - 10, this.canvas.width, 10);
-
-            }
+            
 
 
             // draw the scoreboard 
@@ -476,7 +453,7 @@
                 if (this.ballX < 0 || this.ballX > this.canvas.width) {
                     this.ballSpeedX = 0;
                     this.ballSpeedY = 0;
-                    this.gameEnded = true;
+                    this.paused = true;
                     return;
                 }
 
@@ -510,8 +487,7 @@
                 this.ctx.fillStyle = "black";
                 this.ctx.fill();
 
-                // Draw the walls
-                this.drawWalls();
+              
             }
 
 
